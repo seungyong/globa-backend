@@ -1,0 +1,16 @@
+{
+  "groups": [],
+  "properties": [
+    {
+      "name": "SPRING_DATASOURCE_PASSWORD",
+      "type": "java.lang.String",
+      "description": "Description for SPRING_DATASOURCE_PASSWORD."
+    },
+    {
+      "name": "SPRING_DATASOURCE_URL",
+      "type": "java.lang.String",
+      "description": "Description for SPRING_DATASOURCE_URL."
+    }
+  ],
+  "hints": []
+}
