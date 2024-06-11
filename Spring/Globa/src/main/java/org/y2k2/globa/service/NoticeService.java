@@ -11,10 +11,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.y2k2.globa.dto.*;
 import org.y2k2.globa.entity.*;
-import org.y2k2.globa.exception.FileUploadException;
-import org.y2k2.globa.exception.ForbiddenException;
-import org.y2k2.globa.exception.InvalidTokenException;
-import org.y2k2.globa.exception.NotFoundException;
+import org.y2k2.globa.exception.*;
 import org.y2k2.globa.mapper.NoticeMapper;
 import org.y2k2.globa.mapper.NotificationMapper;
 import org.y2k2.globa.repository.*;
@@ -61,6 +58,8 @@ public class NoticeService {
         if (user == null) {
             throw new InvalidTokenException("Invalid Token");
         }
+
+        if (user.getDeleted()) throw new BadRequestException("User Deleted ! ");
 
         UserRoleEntity userRole = userRoleRepository.findByUser(user);
         String roleName = userRole.getRoleId().getName();

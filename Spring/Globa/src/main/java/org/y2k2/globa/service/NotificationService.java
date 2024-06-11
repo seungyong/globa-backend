@@ -9,6 +9,7 @@ import org.y2k2.globa.dto.NotificationDto;
 import org.y2k2.globa.dto.ResponseNotificationDto;
 import org.y2k2.globa.entity.NotificationEntity;
 import org.y2k2.globa.entity.UserEntity;
+import org.y2k2.globa.exception.BadRequestException;
 import org.y2k2.globa.exception.NotFoundException;
 import org.y2k2.globa.mapper.NotificationMapper;
 import org.y2k2.globa.repository.NotificationRepository;
@@ -27,6 +28,8 @@ public class NotificationService {
         if (user == null) {
             throw new NotFoundException("User not found");
         }
+
+        if (user.getDeleted()) throw new BadRequestException("User Deleted ! ");
 
         Pageable pageable = PageRequest.of(page - 1, count);
         Page<NotificationEntity> notificationEntityPage = notificationRepository.findAllByFromUserOrTypeIdIn(pageable, user, new char[]{'1'});

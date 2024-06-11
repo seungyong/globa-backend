@@ -1,6 +1,7 @@
 package org.y2k2.globa.service;
 
 import com.google.cloud.storage.*;
+import com.google.cloud.storage.StorageException;
 import jakarta.mail.Folder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,7 @@ import org.y2k2.globa.dto.ShareTarget;
 import org.y2k2.globa.entity.FolderEntity;
 import org.y2k2.globa.entity.FolderShareEntity;
 import org.y2k2.globa.entity.UserEntity;
-import org.y2k2.globa.exception.BadRequestException;
-import org.y2k2.globa.exception.BadRequestFolderException;
-import org.y2k2.globa.exception.NotFoundException;
-import org.y2k2.globa.exception.UnAuthorizedException;
+import org.y2k2.globa.exception.*;
 import org.y2k2.globa.mapper.FolderMapper;
 import org.y2k2.globa.repository.*;
 import org.y2k2.globa.util.JwtTokenProvider;
@@ -58,6 +56,8 @@ public class FolderService {
         Long userId = jwtTokenProvider.getUserIdByAccessToken(accessToken); // 사용하지 않아도, 작업을 거치며 토큰 유효성 검사함.
 
         UserEntity userEntity = userRepository.findOneByUserId(userId);
+        if (userEntity == null) throw new BadRequestException("Not found user");
+        if (userEntity.getDeleted()) throw new BadRequestException("User Deleted ! ");
 
 
         Pageable pageable = PageRequest.of(page-1, count);
@@ -73,6 +73,8 @@ public class FolderService {
 
     public FolderDto postDefaultFolder(UserEntity userEntity){
         FolderEntity saveFolderEntity = new FolderEntity();
+        if (userEntity == null) throw new BadRequestException("Not found user");
+        if (userEntity.getDeleted()) throw new BadRequestException("User Deleted ! ");
         saveFolderEntity.setUser(userEntity);
         saveFolderEntity.setTitle(userEntity.getName() + "의 기본 폴더");
         saveFolderEntity.setCreatedTime(LocalDateTime.now());
@@ -112,6 +114,8 @@ public class FolderService {
         Long userId = jwtTokenProvider.getUserIdByAccessToken(accessToken); // 사용하지 않아도, 작업을 거치며 토큰 유효성 검사함.
 
         UserEntity userEntity = userRepository.findOneByUserId(userId);
+        if (userEntity == null) throw new BadRequestException("Not found user");
+        if (userEntity.getDeleted()) throw new BadRequestException("User Deleted ! ");
 
         FolderEntity saveFolderEntity = new FolderEntity();
         saveFolderEntity.setUser(userEntity);
@@ -151,6 +155,8 @@ public class FolderService {
     public FolderDto postFolder(String accessToken, String title, List<ShareTarget> shareTargets){
         Long userId = jwtTokenProvider.getUserIdByAccessToken(accessToken); // 사용하지 않아도, 작업을 거치며 토큰 유효성 검사함.
         UserEntity userEntity = userRepository.findOneByUserId(userId);
+        if (userEntity == null) throw new BadRequestException("Not found user");
+        if (userEntity.getDeleted()) throw new BadRequestException("User Deleted ! ");
 
         FolderEntity saveFolderEntity = new FolderEntity();
         saveFolderEntity.setUser(userEntity);
@@ -173,6 +179,8 @@ public class FolderService {
         for (ShareTarget target : shareTargets) {
             System.out.println("Code: " + target.getCode() + ", Role: " + target.getRole());
             UserEntity targetEntity = userRepository.findOneByCode(target.getCode());
+            if(targetEntity == null)
+                throw new NotFoundException("Share Target Not Found ");
 
             if (target.getRole().isEmpty())
                 throw new BadRequestException("You must be request role field");
@@ -202,19 +210,22 @@ public class FolderService {
     public HttpStatus patchFolderName(String accessToken, Long folderId, String title){
         Long userId = jwtTokenProvider.getUserIdByAccessToken(accessToken); // 사용하지 않아도, 작업을 거치며 토큰 유효성 검사함.
         UserEntity userEntity = userRepository.findOneByUserId(userId);
+        if (userEntity == null) throw new BadRequestException("Not found user");
+        if (userEntity.getDeleted()) throw new BadRequestException("User Deleted ! ");
+
         FolderEntity folderEntity = folderRepository.findFolderEntityByFolderId(folderId);
+
+        if(folderEntity == null)
+            throw new NotFoundException("Folder Id not found ! ");
 
         if (!Objects.equals(userId, folderEntity.getUser().getUserId())){
             throw new UnAuthorizedException("Not Matched User ");
         }
 
-        if(folderEntity == null)
-            throw new NotFoundException("Folder Id not found ! ");
-
         FolderShareEntity folderShareEntity = folderShareRepository.findFirstByTargetUserAndFolderFolderId(userEntity, folderId);
 
         if(folderShareEntity == null)
-            throw new UnAuthorizedException("폴더에 대한 권한이 없습니다.");
+            throw new ForbiddenException("폴더에 대한 권한이 없습니다.");
 
         folderEntity.setTitle(title);
 
@@ -228,6 +239,9 @@ public class FolderService {
     public HttpStatus deleteFolderName(String accessToken, Long folderId){
         Long userId = jwtTokenProvider.getUserIdByAccessToken(accessToken); // 사용하지 않아도, 작업을 거치며 토큰 유효성 검사함.
         UserEntity userEntity = userRepository.findOneByUserId(userId);
+        if (userEntity == null) throw new BadRequestException("Not found user");
+        if (userEntity.getDeleted()) throw new BadRequestException("User Deleted ! ");
+
         FolderEntity folderEntity = folderRepository.findFolderEntityByFolderId(folderId);
         FolderEntity defaultFolderEntity = folderRepository.findFirstByUserUserIdOrderByCreatedTimeAsc(userEntity.getUserId());
 
@@ -261,6 +275,9 @@ public class FolderService {
     }
 
     public HttpStatus deleteDefaultFolder(UserEntity userEntity){
+        if (userEntity == null) throw new BadRequestException("Not found user");
+        if (userEntity.getDeleted()) throw new BadRequestException("User Deleted ! ");
+
         FolderEntity folderEntity = folderRepository.findFirstByUserUserIdOrderByCreatedTimeAsc(userEntity.getUserId());
 
         if(folderEntity == null) {

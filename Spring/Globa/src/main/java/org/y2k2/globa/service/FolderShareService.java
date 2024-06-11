@@ -38,6 +38,9 @@ public class FolderShareService {
     public FolderShareUserResponseDto getShares(Long folderId, Long userId, int page, int count) {
         FolderEntity folderEntity = folderRepository.findFirstByFolderId(folderId);
 
+        UserEntity user = userRepository.findByUserId(userId);
+        if (user.getDeleted()) throw new BadRequestException("User Deleted ! ");
+
         if (folderEntity == null) throw new NotFoundException("Not found folder");
         if (!folderEntity.getUser().getUserId().equals(userId)) throw new ForbiddenException("You are not owned this folder");
 
@@ -57,6 +60,9 @@ public class FolderShareService {
     public void inviteShare(Long folderId, Long ownerId, Long targetId, Role role) {
         UserEntity ownerEntity = userRepository.findByUserId(ownerId);
         UserEntity targetEntity = userRepository.findByUserId(targetId);
+
+        if (ownerEntity.getDeleted()) throw new BadRequestException("User Deleted ! ");
+
         if (ownerId.equals(targetId)) throw new BadRequestException("You can't invite yourself");
         if (targetEntity == null) throw new BadRequestException("Not found target user");
 
@@ -106,6 +112,10 @@ public class FolderShareService {
     @Transactional
     public void editInviteShare(Long folderId, Long ownerId, Long targetId, Role role) {
         UserEntity targetEntity = userRepository.findByUserId(targetId);
+
+        UserEntity user = userRepository.findByUserId(ownerId);
+        if (user.getDeleted()) throw new BadRequestException("User Deleted ! ");
+
         if (targetEntity == null) throw new BadRequestException("Not found target user");
 
         FolderEntity folderEntity = folderRepository.findFirstByFolderId(folderId);
@@ -123,6 +133,9 @@ public class FolderShareService {
 
     @Transactional
     public void deleteInviteShare(Long folderId, Long ownerId, Long targetId) {
+        UserEntity user = userRepository.findByUserId(ownerId);
+        if (user.getDeleted()) throw new BadRequestException("User Deleted ! ");
+
         UserEntity targetEntity = userRepository.findByUserId(targetId);
         if (targetEntity == null) throw new BadRequestException("Not found target user");
 

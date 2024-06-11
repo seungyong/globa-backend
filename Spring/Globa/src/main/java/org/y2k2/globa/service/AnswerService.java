@@ -8,10 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.y2k2.globa.dto.*;
 import org.y2k2.globa.entity.*;
-import org.y2k2.globa.exception.DuplicatedExcepiton;
-import org.y2k2.globa.exception.ForbiddenException;
-import org.y2k2.globa.exception.InvalidTokenException;
-import org.y2k2.globa.exception.NotFoundException;
+import org.y2k2.globa.exception.*;
 import org.y2k2.globa.mapper.NotificationMapper;
 import org.y2k2.globa.repository.*;
 
@@ -111,6 +108,7 @@ public class AnswerService {
     private UserEntity validateUser(long userId) {
         UserEntity user = userRepository.findByUserId(userId);
         if (user == null) throw new InvalidTokenException("Not found user");
+        if (user.getDeleted()) throw new BadRequestException("User Deleted ! ");
 
         return user;
     }

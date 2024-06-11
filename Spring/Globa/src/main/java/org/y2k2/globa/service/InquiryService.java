@@ -9,6 +9,7 @@ import org.y2k2.globa.dto.*;
 import org.y2k2.globa.entity.AnswerEntity;
 import org.y2k2.globa.entity.InquiryEntity;
 import org.y2k2.globa.entity.UserEntity;
+import org.y2k2.globa.exception.BadRequestException;
 import org.y2k2.globa.exception.ForbiddenException;
 import org.y2k2.globa.exception.InvalidTokenException;
 import org.y2k2.globa.exception.NotFoundException;
@@ -29,6 +30,7 @@ public class InquiryService {
     public ResponseInquiryDto getInquiries(long userId, PaginationDto pagination) {
         UserEntity user = userRepository.findByUserId(userId);
         if (user == null) throw new InvalidTokenException("Not found user");
+        if (user.getDeleted()) throw new BadRequestException("User Deleted ! ");
 
         Pageable pageable = PageRequest.of(pagination.getPage() - 1, pagination.getCount());
         Page<InquiryEntity> inquiryEntityPage;

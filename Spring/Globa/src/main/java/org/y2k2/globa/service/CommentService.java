@@ -38,6 +38,7 @@ public class CommentService {
 
     public ResponseCommentDto getComments(RequestCommentWithIdsDto request, int page, int count) {
         UserEntity user = validateUser(request.getUserId());
+
         SectionEntity section = validateSection(request.getSectionId(), request.getRecordId(), request.getFolderId());
         validateFolderShare(section, user);
 
@@ -57,6 +58,7 @@ public class CommentService {
 
     public ResponseReplyDto getReply(RequestCommentWithIdsDto request, int page, int count) {
         UserEntity user = validateUser(request.getUserId());
+
         SectionEntity section = validateSection(request.getSectionId(), request.getRecordId(), request.getFolderId());
         validateFolderShare(section, user);
 
@@ -79,6 +81,7 @@ public class CommentService {
     @Transactional
     public long addFirstComment(RequestCommentWithIdsDto request, RequestFirstCommentDto dto) {
         UserEntity user = validateUser(request.getUserId());
+
         SectionEntity section = validateSection(request.getSectionId(), request.getRecordId(), request.getFolderId());
         FolderShareEntity folderShare = validateFolderShare(section, user);
 
@@ -106,6 +109,7 @@ public class CommentService {
     @Transactional
     public void addComment(RequestCommentWithIdsDto request, RequestCommentDto dto) {
         UserEntity user = validateUser(request.getUserId());
+
         SectionEntity section = validateSection(request.getSectionId(), request.getRecordId(), request.getFolderId());
         FolderShareEntity folderShare = validateFolderShare(section, user);
         HighlightEntity highlight = validateHighlight(request.getHighlightId());
@@ -125,6 +129,7 @@ public class CommentService {
     @Transactional
     public void addReply(RequestCommentWithIdsDto request, RequestCommentDto dto) {
         UserEntity user = validateUser(request.getUserId());
+
         SectionEntity section = validateSection(request.getSectionId(), request.getRecordId(), request.getFolderId());
         FolderShareEntity folderShare = validateFolderShare(section, user);
         HighlightEntity highlight = validateHighlight(request.getHighlightId());
@@ -147,6 +152,7 @@ public class CommentService {
 
     public void updateComment(RequestCommentWithIdsDto request, long commentId, RequestCommentDto dto) {
         UserEntity user = validateUser(request.getUserId());
+
         SectionEntity section = validateSection(request.getSectionId(), request.getRecordId(), request.getFolderId());
         validateFolderShare(section, user);
         validateHighlight(request.getHighlightId());
@@ -161,6 +167,7 @@ public class CommentService {
     @Transactional
     public void deleteComment(RequestCommentWithIdsDto request, long commentId) {
         UserEntity user = validateUser(request.getUserId());
+
         SectionEntity section = validateSection(request.getSectionId(), request.getRecordId(), request.getFolderId());
         validateFolderShare(section, user);
         validateHighlight(request.getHighlightId());
@@ -177,6 +184,7 @@ public class CommentService {
     private UserEntity validateUser(long userId) {
         UserEntity user = userRepository.findByUserId(userId);
         if (user == null) throw new InvalidTokenException("Invalid Token");
+        if (user.getDeleted()) throw new BadRequestException("User Deleted ! ");
 
         return user;
     }
